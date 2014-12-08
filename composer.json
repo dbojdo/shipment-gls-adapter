@@ -1,0 +1,24 @@
+{
+    "name" : "webit/shipment-gls-adapter",
+    "type" : "library",
+    "description": "Web-IT Shipment GLS Adapter",
+    "authors": [
+        {
+            "name": "Daniel Bojdo",
+            "email": "daniel.bojdo@web-it.eu"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "webit/shipment": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Webit\\Shipment\\GlsAdapter": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
