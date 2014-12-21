@@ -23,6 +23,7 @@ use Webit\Shipment\Consignment\DispatchConfirmationInterface;
 use Webit\Shipment\GlsAdapter\Exception\InvalidStateException;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
 use Webit\Shipment\GlsAdapter\Mapper\ConsignmentMapper;
+use Webit\Shipment\GlsAdapter\Mapper\GlsConsignmentMapper;
 use Webit\Shipment\Manager\VendorAdapterInterface;
 use Webit\Shipment\Parcel\ParcelInterface;
 use Webit\Shipment\Vendor\VendorInterface;
@@ -69,6 +70,11 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     private $consignmentMapper;
 
     /**
+     * @var GlsConsignmentMapper
+     */
+    private $glsConsignmetMapper;
+
+    /**
      * @param string $vendorClass
      * @param ConsignmentPrepareApi $prepareConsignmentApi
      * @param PickupApi $pickupApi
@@ -76,6 +82,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
      * @param ServiceApi $serviceApi
      * @param TrackingUrlProvider $urlProvider
      * @param ConsignmentMapper $consignmentMapper
+     * @param GlsConsignmentMapper $glsConsignmentMapper
      */
     public function __construct(
         $vendorClass,
@@ -84,7 +91,8 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         TrackingApi $trackingApi,
         ServiceApi $serviceApi,
         TrackingUrlProvider $urlProvider,
-        ConsignmentMapper $consignmentMapper
+        ConsignmentMapper $consignmentMapper,
+        GlsConsignmentMapper $glsConsignmentMapper
     ) {
         $this->vendorClass = $vendorClass;
         $this->prepareConsignmentApi = $prepareConsignmentApi;
@@ -93,6 +101,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $this->serviceApi = $serviceApi;
         $this->urlProvider = $urlProvider;
         $this->consignmentMapper = $consignmentMapper;
+        $this->glsConsignmetMapper = $glsConsignmentMapper;
     }
 
 
@@ -327,7 +336,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     public function synchronizeConsignment(ConsignmentInterface $consignment)
     {
         $glsConsignment = $this->getGlsConsignment($consignment);
-        $this->consignmentMapper->mapGlsConsignment($glsConsignment, $consignment);
+        $this->glsConsignmetMapper->mapGlsConsignment($glsConsignment, $consignment);
     }
 
     /**
@@ -349,7 +358,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         }
 
         $parcel->setVendorStatus($event->getCode());
-        $status = $this->consignmentMapper->mapParcelStatus($event->getCode());
+        $status = $this->glsConsignmetMapper->mapParcelStatus($event->getCode());
         $parcel->setStatus($status);
     }
 }

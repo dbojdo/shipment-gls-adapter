@@ -8,12 +8,30 @@
 
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
-
 use Webit\GlsAde\Model\Consignment;
+use Webit\GlsAde\Model\Parcel;
+use Webit\GlsAde\Model\SenderAddress;
+use Webit\GlsAde\Model\ServicesBool;
 use Webit\Shipment\Consignment\ConsignmentInterface;
+use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
+use Webit\Shipment\Parcel\ParcelInterface;
+use Webit\Shipment\Vendor\VendorOptionValueInterface;
 
 class ConsignmentMapper
 {
+    /**
+     * @var ServiceOptionMapper
+     */
+    private $serviceOptionMapper;
+
+    /**
+     * @param ServiceOptionMapper $serviceOptionMapper
+     */
+    public function __construct(ServiceOptionMapper $serviceOptionMapper)
+    {
+        $this->serviceOptionMapper = $serviceOptionMapper;
+    }
+
     /**
      * @param ConsignmentInterface $consignment
      * @param Consignment $glsConsignment
@@ -21,34 +39,158 @@ class ConsignmentMapper
      */
     public function mapConsignment(ConsignmentInterface $consignment, Consignment $glsConsignment = null)
     {
+        $glsConsignment = $glsConsignment ?: new Consignment();
 
+        $this->mapDeliveryAddress($consignment, $glsConsignment);
+        $this->mapSenderAddress($consignment, $glsConsignment);
+        $this->mapServices($consignment, $glsConsignment);
+        $this->mapParcels($consignment, $glsConsignment);
     }
 
     /**
-     * @param Consignment $glsConsignment
      * @param ConsignmentInterface $consignment
-     * @return ConsignmentInterface
+     * @param Consignment $glsConsignment
      */
-    public function mapGlsConsignment(Consignment $glsConsignment, ConsignmentInterface $consignment = null)
+    private function mapServices(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
+        $servicesBool = new ServicesBool();
+        $servicesBool->setCod($consignment->isCod() ? 1 : 0);
+        $servicesBool->setCodAmount($consignment->isCod() ? $consignment->getCodAmount() : null);
 
+        /**
+         * @var string $code
+         * @var VendorOptionValueInterface $optionValue
+         */
+        foreach ($consignment->getVendorOptions() as $code => $optionValue) {
+            $service = $this->serviceOptionMapper->mapOptionCode($code);
+            if (! $service) {
+                continue;
+            }
+
+            $setter = sprintf('set%s', ucfirst($service));
+            call_user_func(array($service, $setter), $optionValue->getValue());
+
+            $optionValue->getValue();
+        }
+
+        if ($servicesBool->getPr() || $servicesBool->getPs() || $servicesBool->getExc() || $servicesBool->getSrs()) {
+            $this->mapPpeData($consignment, $glsConsignment);
+        }
+
+        if ($servicesBool->getIdent()) {
+            $this->mapIdentData($consignment, $glsConsignment);
+        }
+
+        if ($servicesBool->getDaw()) {
+            $this->mapDawData($consignment, $glsConsignment);
+        }
     }
 
     /**
-     * @param string $status
-     * @return string
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
      */
-    public function mapParcelStatus($status)
+    private function mapDeliveryAddress(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
+        $deliveryAddress = $consignment->getDeliveryAddress();
 
+        $glsConsignment->setName1($deliveryAddress ? $deliveryAddress->getName() : null);
+        $glsConsignment->setZipCode($deliveryAddress ? $deliveryAddress->getPostCode() : null);
+        $glsConsignment->setCity($deliveryAddress ? $deliveryAddress->getPost() : null);
+        $glsConsignment->setCountry(
+            $deliveryAddress && $deliveryAddress->getCountry() ? $deliveryAddress->getCountry()->getIsoCode() : null
+        );
+        $glsConsignment->setContact($deliveryAddress ? $deliveryAddress->getContactPerson() : null);
+        $glsConsignment->setPhone($deliveryAddress ? $deliveryAddress->getContactPhoneNo() : null);
     }
 
     /**
-     * @param string $service
-     * @return string
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
      */
-    public function getServiceOptionName($service)
+    private function mapSenderAddress(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
-        return sprintf('service.%s', $service);
+        $senderAddress = $consignment->getSenderAddress();
+        if (! $senderAddress) {
+            $glsConsignment->setSenderAddress(null);
+        }
+
+        $glsSenderAddress = $glsConsignment->getSenderAddress() ?: new SenderAddress();
+        $glsSenderAddress->setName1($senderAddress->getName());
+        $glsSenderAddress->setZipCode($senderAddress->getPostCode());
+        $glsSenderAddress->setCity($senderAddress->getPost());
+        $glsSenderAddress->setCountry($senderAddress->getCountry()->getIsoCode());
+        $glsConsignment->setSenderAddress($glsSenderAddress);
+    }
+
+    /**
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
+     */
+    private function mapParcels(ConsignmentInterface $consignment, Consignment $glsConsignment)
+    {
+        $toRemoveGlsParcels = array();
+        foreach ($glsConsignment->getParcels() as $glsParcel) {
+            $toRemoveGlsParcels[$glsParcel->getNumber()] = $glsParcel;
+        }
+
+        /** @var ParcelInterface $parcel */
+        foreach ($consignment->getParcels() as $parcel) {
+            $glsParcel = $glsConsignment->getParcels()->filter(function (Parcel $glsParcel) use ($parcel) {
+                return $glsParcel->getNumber() == $parcel->getNumber();
+            });
+
+            $glsParcel = $glsParcel->first();
+            $glsParcel = $glsParcel ?: new Parcel();
+
+            $this->mapParcel($parcel, $glsParcel);
+            $glsParcel->setServicesBool($glsConsignment->getServicesBool());
+
+            $glsConsignment->addParcel($glsParcel);
+
+            unset($toRemoveGlsParcels[$glsParcel->getNumber()]);
+        }
+
+        /** @var Parcel $glsParcel */
+        foreach ($toRemoveGlsParcels as $glsParcel) {
+            $glsConsignment->removeParcel($glsParcel);
+        }
+    }
+
+    /**
+     * @param ParcelInterface $parcel
+     * @param Parcel $glsParcel
+     */
+    private function mapParcel(ParcelInterface $parcel, Parcel $glsParcel)
+    {
+        $glsParcel->setReference($parcel->getReference());
+        $glsParcel->setWeight($parcel->getWeight());
+    }
+
+    /**
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
+     */
+    private function mapPpeData(ConsignmentInterface $consignment, Consignment $glsConsignment)
+    {
+        throw new UnsupportedOperationException('Services PR, PS, EXC and SRS are not supported by this adapter yet.');
+    }
+
+    /**
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
+     */
+    private function mapIdentData(ConsignmentInterface $consignment, Consignment $glsConsignment)
+    {
+        throw new UnsupportedOperationException('Service IDENT is not supported by this adapter yet.');
+    }
+
+    /**
+     * @param ConsignmentInterface $consignment
+     * @param Consignment $glsConsignment
+     */
+    private function mapDawData(ConsignmentInterface $consignment, Consignment $glsConsignment)
+    {
+        throw new UnsupportedOperationException('Service DAW is not supported by this adapter yet.');
     }
 }
