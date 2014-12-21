@@ -72,7 +72,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     /**
      * @var GlsConsignmentMapper
      */
-    private $glsConsignmetMapper;
+    private $glsConsignmentMapper;
 
     /**
      * @param string $vendorClass
@@ -101,7 +101,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $this->serviceApi = $serviceApi;
         $this->urlProvider = $urlProvider;
         $this->consignmentMapper = $consignmentMapper;
-        $this->glsConsignmetMapper = $glsConsignmentMapper;
+        $this->glsConsignmentMapper = $glsConsignmentMapper;
     }
 
 
@@ -145,7 +145,9 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $pickupId = $this->pickupApi->createPickup($ids, 'Pickup: '. $now->format('Y-m-d H:i:s'));
         $pickup = $this->pickupApi->getPickup($pickupId);
 
-        $dispatchConfirmation = $this->dispatchConfirmationMapper->mapDispatchConfirmation($pickup);
+        $dispatchConfirmation = $this->dispatchConfirmationMapper->mapDispatchConfirmation(
+            $consignments->first()->getVendor(), $pickup, $pickupId
+        );
 
         return $dispatchConfirmation;
     }
@@ -336,7 +338,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     public function synchronizeConsignment(ConsignmentInterface $consignment)
     {
         $glsConsignment = $this->getGlsConsignment($consignment);
-        $this->glsConsignmetMapper->mapGlsConsignment($glsConsignment, $consignment);
+        $this->glsConsignmentMapper->mapGlsConsignment($glsConsignment, $consignment);
     }
 
     /**

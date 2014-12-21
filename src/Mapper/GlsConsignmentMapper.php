@@ -9,11 +9,20 @@
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
 use Webit\GlsAde\Model\Consignment;
+use Webit\GlsAde\Model\Pickup;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\Consignment\ConsignmentStatusList;
+use Webit\Shipment\Consignment\DispatchConfirmationRepositoryInterface;
+use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
+use Webit\Shipment\Vendor\VendorInterface;
 
 class GlsConsignmentMapper
 {
+
+    /**
+     * @var DispatchConfirmationRepositoryInterface
+     */
+    private $dispatchConfirmationRepository;
 
     /**
      * @param Consignment $glsConsignment
@@ -22,7 +31,23 @@ class GlsConsignmentMapper
      */
     public function mapGlsConsignment(Consignment $glsConsignment, ConsignmentInterface $consignment = null)
     {
+        throw new UnsupportedOperationException('Synchronization is not supported yet.');
+    }
 
+    /**
+     * @param VendorInterface $vendor
+     * @param Pickup $pickup
+     * @return \Webit\Shipment\Consignment\DispatchConfirmation|\Webit\Shipment\Consignment\DispatchConfirmationInterface
+     */
+    public function mapPickup(VendorInterface $vendor, Pickup $pickup, $pickupId)
+    {
+        $dispatchConfirmation = $this->dispatchConfirmationRepository->getDispatchConfirmation($vendor, $pickupId);
+        $dispatchConfirmation = $dispatchConfirmation ?: $this->dispatchConfirmationRepository->createDispatchConfirmation();
+
+        $dispatchConfirmation->setNumber($pickupId);
+        $dispatchConfirmation->setDispatchedAt($pickup->getCreatedAt());
+
+        return $dispatchConfirmation;
     }
 
     /**
@@ -31,7 +56,6 @@ class GlsConsignmentMapper
      */
     public function mapParcelStatus($statusCode)
     {
-
         switch ($statusCode) {
             case '2011':
             case '2012':
