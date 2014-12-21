@@ -8,12 +8,17 @@
 
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
-
 use Webit\GlsAde\Model\Consignment;
 use Webit\Shipment\Consignment\ConsignmentInterface;
+use Webit\Shipment\Consignment\ConsignmentStatusList;
 
 class GlsConsignmentMapper
 {
+
+    /**
+     * @var StatusRepositoryInterface
+     */
+    private $statusRepository;
 
     /**
      * @param Consignment $glsConsignment
@@ -26,11 +31,37 @@ class GlsConsignmentMapper
     }
 
     /**
-     * @param string $status
+     * @param string $statusCode
      * @return string
      */
-    public function mapParcelStatus($status)
+    public function mapParcelStatus($statusCode)
     {
 
+        switch ($statusCode) {
+            case '2011':
+            case '2012':
+            case '2900':
+                return ConsignmentStatusList::STATUS_DELIVERED;
+                break;
+            case '3010':
+                return ConsignmentStatusList::STATUS_CANCELED;
+                break;
+        }
+
+        if ($this->isConcerned($statusCode)) {
+            return ConsignmentStatusList::STATUS_CONCERNED;
+        }
+
+        return ConsignmentStatusList::STATUS_DISPATCHED;
+    }
+
+    /**
+     * @param $statusCode
+     * @return bool
+     */
+    private function isConcerned($statusCode)
+    {
+        // TODO: implement
+        return false;
     }
 }
