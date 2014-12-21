@@ -10,14 +10,16 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "webit/shipment": "dev-master"
+        "webit/shipment": "dev-master",
+        "webit/gls-ade": "dev-master",
+        "webit/gls-tracking": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "~4.2"
     },
     "autoload": {
         "psr-4": {
-            "Webit\\Shipment\\GlsAdapter": "src/"
+            "Webit\\Shipment\\GlsAdapter\\": "src/"
         }
     },
     "minimum-stability": "dev"
