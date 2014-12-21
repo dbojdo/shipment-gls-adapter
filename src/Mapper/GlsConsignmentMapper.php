@@ -16,11 +16,6 @@ class GlsConsignmentMapper
 {
 
     /**
-     * @var StatusRepositoryInterface
-     */
-    private $statusRepository;
-
-    /**
      * @param Consignment $glsConsignment
      * @param ConsignmentInterface $consignment
      * @return ConsignmentInterface
