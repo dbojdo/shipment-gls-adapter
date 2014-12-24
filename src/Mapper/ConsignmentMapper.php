@@ -45,6 +45,8 @@ class ConsignmentMapper
         $this->mapSenderAddress($consignment, $glsConsignment);
         $this->mapServices($consignment, $glsConsignment);
         $this->mapParcels($consignment, $glsConsignment);
+
+        return $glsConsignment;
     }
 
     /**
@@ -113,6 +115,7 @@ class ConsignmentMapper
         $senderAddress = $consignment->getSenderAddress();
         if (! $senderAddress) {
             $glsConsignment->setSenderAddress(null);
+            return;
         }
 
         $glsSenderAddress = $glsConsignment->getSenderAddress() ?: new SenderAddress();

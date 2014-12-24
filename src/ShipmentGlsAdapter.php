@@ -11,9 +11,6 @@ namespace Webit\Shipment\GlsAdapter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Webit\GlsAde\Api\ConsignmentPrepareApi;
 use Webit\GlsAde\Api\PickupApi;
-use Webit\GlsAde\Api\ServiceApi;
-use Webit\GlsAde\Model\ConsignmentLabelModes;
-use Webit\GlsAde\Model\PickupReceiptModes;
 use Webit\GlsTracking\Api\TrackingApi;
 use Webit\GlsTracking\Model\Event;
 use Webit\GlsTracking\UrlProvider\TrackingUrlProvider;
@@ -24,20 +21,16 @@ use Webit\Shipment\GlsAdapter\Exception\InvalidStateException;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
 use Webit\Shipment\GlsAdapter\Mapper\ConsignmentMapper;
 use Webit\Shipment\GlsAdapter\Mapper\GlsConsignmentMapper;
+use Webit\Shipment\GlsAdapter\Mapper\PickupMapper;
 use Webit\Shipment\Manager\VendorAdapterInterface;
 use Webit\Shipment\Parcel\ParcelInterface;
 use Webit\Shipment\Vendor\VendorInterface;
-use Webit\Shipment\Vendor\VendorOption;
 use Webit\Tools\Data\FilterCollection;
 use Webit\Tools\Data\SorterCollection;
 
 class ShipmentGlsAdapter implements VendorAdapterInterface
 {
-
-    /**
-     * @var string
-     */
-    private $vendorClass;
+    const VENDOR_CODE = 'gls';
 
     /**
      * @var ConsignmentPrepareApi
@@ -55,14 +48,14 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     private $trackingApi;
 
     /**
-     * @var ServiceApi
-     */
-    private $serviceApi;
-
-    /**
      * @var TrackingUrlProvider
      */
     private $urlProvider;
+
+    /**
+     * @var VendorFactory
+     */
+    private $vendorFactory;
 
     /**
      * @var ConsignmentMapper
@@ -75,42 +68,46 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     private $glsConsignmentMapper;
 
     /**
-     * @param string $vendorClass
+     * @var PickupMapper
+     */
+    private $pickupMapper;
+
+    /**
      * @param ConsignmentPrepareApi $prepareConsignmentApi
      * @param PickupApi $pickupApi
      * @param TrackingApi $trackingApi
-     * @param ServiceApi $serviceApi
      * @param TrackingUrlProvider $urlProvider
+     * @param VendorFactory $vendorFactory
      * @param ConsignmentMapper $consignmentMapper
      * @param GlsConsignmentMapper $glsConsignmentMapper
+     * @param PickupMapper $pickupMapper
      */
     public function __construct(
-        $vendorClass,
         ConsignmentPrepareApi $prepareConsignmentApi,
         PickupApi $pickupApi,
         TrackingApi $trackingApi,
-        ServiceApi $serviceApi,
         TrackingUrlProvider $urlProvider,
+        VendorFactory $vendorFactory,
         ConsignmentMapper $consignmentMapper,
-        GlsConsignmentMapper $glsConsignmentMapper
+        GlsConsignmentMapper $glsConsignmentMapper,
+        PickupMapper $pickupMapper
     ) {
-        $this->vendorClass = $vendorClass;
         $this->prepareConsignmentApi = $prepareConsignmentApi;
         $this->pickupApi = $pickupApi;
         $this->trackingApi = $trackingApi;
-        $this->serviceApi = $serviceApi;
         $this->urlProvider = $urlProvider;
+        $this->vendorFactory = $vendorFactory;
         $this->consignmentMapper = $consignmentMapper;
         $this->glsConsignmentMapper = $glsConsignmentMapper;
+        $this->pickupMapper = $pickupMapper;
     }
-
 
     /**
      * @return string
      */
     public function getVendorCode()
     {
-        return 'gls';
+        return self::VENDOR_CODE;
     }
 
     /**
@@ -145,7 +142,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $pickupId = $this->pickupApi->createPickup($ids, 'Pickup: '. $now->format('Y-m-d H:i:s'));
         $pickup = $this->pickupApi->getPickup($pickupId);
 
-        $dispatchConfirmation = $this->dispatchConfirmationMapper->mapDispatchConfirmation(
+        $dispatchConfirmation = $this->pickupMapper->mapPickup(
             $consignments->first()->getVendor(), $pickup, $pickupId
         );
 
@@ -275,38 +272,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
      */
     public function createVendor()
     {
-        /** @var VendorInterface $vendor */
-        $refClass = new \ReflectionClass($this->vendorClass);
-        $vendor = $refClass->newInstanceArgs($this->getVendorCode());
-        $vendor->setName('GLS');
-        $vendor->setActive(true);
-        $vendor->setDescription('GLS Europe');
-
-        foreach (ConsignmentLabelModes::getLabelModes() as $mode) {
-            $vendor->getLabelPrintModes()->add($mode);
-        }
-
-        foreach (PickupReceiptModes::getLabelModes() as $mode) {
-            $vendor->getDispatchConfirmationPrintModes()->add($mode);
-        }
-
-        $list = $this->serviceApi->getAllowedServices();
-        foreach ($list as $service => $allowed) {
-            $optionName = $this->consignmentMapper->getServiceOptionName($service);
-            $option = new VendorOption();
-            $option->setCode($optionName);
-            $option->setName(sprintf('Service %s', $service));
-
-            if ($service != 'cod_amount') {
-                $option->addAllowedValue(true);
-                $option->addAllowedValue(false);
-            }
-
-            $vendor->getConsignmentOptions()->set($optionName, $option);
-            $vendor->getParcelOptions()->set($optionName, $option);
-        }
-
-        return $vendor;
+        return $this->vendorFactory->createVendor();
     }
 
     /**

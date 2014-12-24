@@ -22,5 +22,10 @@
             "Webit\\Shipment\\GlsAdapter\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Webit\\Shipment\\GlsAdapter\\Tests\\": "tests/"
+        }
+    },
     "minimum-stability": "dev"
 }

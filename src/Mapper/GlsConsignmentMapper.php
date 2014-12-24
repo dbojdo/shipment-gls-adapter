@@ -9,20 +9,12 @@
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
 use Webit\GlsAde\Model\Consignment;
-use Webit\GlsAde\Model\Pickup;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\Consignment\ConsignmentStatusList;
-use Webit\Shipment\Consignment\DispatchConfirmationRepositoryInterface;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
-use Webit\Shipment\Vendor\VendorInterface;
 
 class GlsConsignmentMapper
 {
-
-    /**
-     * @var DispatchConfirmationRepositoryInterface
-     */
-    private $dispatchConfirmationRepository;
 
     /**
      * @param Consignment $glsConsignment
@@ -35,22 +27,6 @@ class GlsConsignmentMapper
     }
 
     /**
-     * @param VendorInterface $vendor
-     * @param Pickup $pickup
-     * @return \Webit\Shipment\Consignment\DispatchConfirmation|\Webit\Shipment\Consignment\DispatchConfirmationInterface
-     */
-    public function mapPickup(VendorInterface $vendor, Pickup $pickup, $pickupId)
-    {
-        $dispatchConfirmation = $this->dispatchConfirmationRepository->getDispatchConfirmation($vendor, $pickupId);
-        $dispatchConfirmation = $dispatchConfirmation ?: $this->dispatchConfirmationRepository->createDispatchConfirmation();
-
-        $dispatchConfirmation->setNumber($pickupId);
-        $dispatchConfirmation->setDispatchedAt($pickup->getCreatedAt());
-
-        return $dispatchConfirmation;
-    }
-
-    /**
      * @param string $statusCode
      * @return string
      */
@@ -59,7 +35,6 @@ class GlsConsignmentMapper
         switch ($statusCode) {
             case '2011':
             case '2012':
-            case '2900':
                 return ConsignmentStatusList::STATUS_DELIVERED;
                 break;
             case '3010':
@@ -75,12 +50,17 @@ class GlsConsignmentMapper
     }
 
     /**
-     * @param $statusCode
+     * @param string $statusCode
      * @return bool
      */
     private function isConcerned($statusCode)
     {
-        // TODO: implement
-        return false;
+        return in_array($statusCode,
+            array(
+                '1024', '2106', '2110', '2112', '2113', '2114', '2115', '2203', '2204', '2205', '2303', '2304', '2404',
+                '2900', '2901', '2902', '2911', '2912', '2913', '2914', '2915', '2918', '2933', '2934', '2939', '2950',
+                '2951', '2952', '2953', '2954', '2955', '2956', '2957','2958', '3010'
+            )
+        );
     }
 }

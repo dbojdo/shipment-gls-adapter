@@ -17,7 +17,7 @@ class ServiceOptionMapper
      */
     public function mapOptionCode($optionCode)
     {
-        if (preg_match('/^service\.(.*?)/', $optionCode, $matches)) {
+        if (preg_match('/^service\.(.+)/', $optionCode, $matches)) {
             return strtolower($matches[1]);
         }
 
