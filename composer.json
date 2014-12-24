@@ -2,6 +2,15 @@
     "name" : "webit/shipment-gls-adapter",
     "type" : "library",
     "description": "Web-IT Shipment GLS Adapter",
+    "keywords": [
+        "web-it",
+        "shipment",
+        "bundle",
+        "delivery",
+        "parcel",
+        "dispatch",
+        "gls"
+    ],
     "authors": [
         {
             "name": "Daniel Bojdo",
