@@ -46,7 +46,7 @@ class GlsConsignmentMapper
             return ConsignmentStatusList::STATUS_CONCERNED;
         }
 
-        return ConsignmentStatusList::STATUS_DISPATCHED;
+        return ConsignmentStatusList::STATUS_COLLECTED;
     }
 
     /**
