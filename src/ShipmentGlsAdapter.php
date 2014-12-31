@@ -165,6 +165,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         }
 
         $glsConsignment = $this->consignmentMapper->mapConsignment($consignment, $glsConsignment);
+
         $vendorId = $this->prepareConsignmentApi->insertConsignment($glsConsignment);
         $consignment->setVendorId($vendorId);
     }
@@ -281,7 +282,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
      */
     private function getGlsConsignment(ConsignmentInterface $consignment)
     {
-        if (! $consignment->getStatus()) {
+        if (! $consignment->getStatus() || ! $consignment->getVendorId()) {
             return null;
         }
 

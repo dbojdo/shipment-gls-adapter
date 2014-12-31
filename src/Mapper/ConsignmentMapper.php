@@ -70,7 +70,7 @@ class ConsignmentMapper
             }
 
             $setter = sprintf('set%s', ucfirst($service));
-            call_user_func(array($service, $setter), $optionValue->getValue());
+            call_user_func(array($servicesBool, $setter), $optionValue->getValue());
 
             $optionValue->getValue();
         }
@@ -86,6 +86,7 @@ class ConsignmentMapper
         if ($servicesBool->getDaw()) {
             $this->mapDawData($consignment, $glsConsignment);
         }
+        $glsConsignment->setServicesBool($servicesBool);
     }
 
     /**
@@ -97,6 +98,7 @@ class ConsignmentMapper
         $deliveryAddress = $consignment->getDeliveryAddress();
 
         $glsConsignment->setName1($deliveryAddress ? $deliveryAddress->getName() : null);
+        $glsConsignment->setStreet($deliveryAddress ? $deliveryAddress->getAddress() : null);
         $glsConsignment->setZipCode($deliveryAddress ? $deliveryAddress->getPostCode() : null);
         $glsConsignment->setCity($deliveryAddress ? $deliveryAddress->getPost() : null);
         $glsConsignment->setCountry(
@@ -120,6 +122,7 @@ class ConsignmentMapper
 
         $glsSenderAddress = $glsConsignment->getSenderAddress() ?: new SenderAddress();
         $glsSenderAddress->setName1($senderAddress->getName());
+        $glsSenderAddress->setStreet($senderAddress->getAddress());
         $glsSenderAddress->setZipCode($senderAddress->getPostCode());
         $glsSenderAddress->setCity($senderAddress->getPost());
         $glsSenderAddress->setCountry($senderAddress->getCountry()->getIsoCode());
