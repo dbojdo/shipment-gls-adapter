@@ -114,7 +114,11 @@ class ConsignmentMapper
         $glsConsignment->setCountry(
             $deliveryAddress && $deliveryAddress->getCountry() ? $deliveryAddress->getCountry()->getIsoCode() : null
         );
-        $glsConsignment->setContact($deliveryAddress ? $deliveryAddress->getContactPerson() : null);
+
+        $contact = sprintf('%s / %s', $deliveryAddress->getContactEmail(), $deliveryAddress->getContactPerson());
+        $contact = trim($contact, ' /');
+        $glsConsignment->setContact($contact);
+
         $glsConsignment->setPhone($deliveryAddress ? $deliveryAddress->getContactPhoneNo() : null);
     }
 
