@@ -14,6 +14,7 @@ use Webit\GlsAde\Model\SenderAddress;
 use Webit\GlsAde\Model\ServicesBool;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
+use Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface;
 use Webit\Shipment\Parcel\ParcelInterface;
 use Webit\Shipment\Vendor\VendorOptionValueInterface;
 
@@ -25,11 +26,20 @@ class ConsignmentMapper
     private $serviceOptionMapper;
 
     /**
-     * @param ServiceOptionMapper $serviceOptionMapper
+     * @var DefaultSenderAddressProviderInterface
      */
-    public function __construct(ServiceOptionMapper $serviceOptionMapper)
-    {
+    private $defaultSenderProvider;
+
+    /**
+     * @param ServiceOptionMapper $serviceOptionMapper
+     * @param DefaultSenderAddressProviderInterface $defaultSenderAddressProvider
+     */
+    public function __construct(
+        ServiceOptionMapper $serviceOptionMapper,
+        DefaultSenderAddressProviderInterface $defaultSenderAddressProvider
+    ) {
         $this->serviceOptionMapper = $serviceOptionMapper;
+        $this->defaultSenderProvider = $defaultSenderAddressProvider;
     }
 
     /**
@@ -116,7 +126,9 @@ class ConsignmentMapper
     {
         $senderAddress = $consignment->getSenderAddress();
         if (! $senderAddress) {
-            $glsConsignment->setSenderAddress(null);
+            $senderAddress = $this->defaultSenderProvider->getDefaultSenderAddress();
+            $glsConsignment->setSenderAddress($senderAddress);
+
             return;
         }
 

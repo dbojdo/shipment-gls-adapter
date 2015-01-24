@@ -40,7 +40,7 @@ class GlsConsignmentMapperTest extends \PHPUnit_Framework_TestCase
             array('2900', ConsignmentStatusList::STATUS_CONCERNED),
             array('2918', ConsignmentStatusList::STATUS_CONCERNED),
             array('', ConsignmentStatusList::STATUS_DISPATCHED),
-            array('2258', ConsignmentStatusList::STATUS_DISPATCHED)
+            array('2258', ConsignmentStatusList::STATUS_COLLECTED)
         );
     }
 }

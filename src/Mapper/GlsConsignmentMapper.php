@@ -32,6 +32,10 @@ class GlsConsignmentMapper
      */
     public function mapParcelStatus($statusCode)
     {
+        if (empty($statusCode)) {
+            return ConsignmentStatusList::STATUS_DISPATCHED;
+        }
+
         switch ($statusCode) {
             case '2011':
             case '2012':

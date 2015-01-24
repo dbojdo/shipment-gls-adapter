@@ -13,6 +13,7 @@ use Webit\GlsAde\Model\Consignment;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\GlsAdapter\Mapper\ConsignmentMapper;
 use Webit\Shipment\GlsAdapter\Mapper\ServiceOptionMapper;
+use Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface;
 use Webit\Shipment\Vendor\VendorOptionValueCollection;
 
 /**
@@ -31,10 +32,17 @@ class ConsignmentMapperTest extends \PHPUnit_Framework_TestCase
      */
     private $consignment;
 
+    /**
+     * @var DefaultSenderAddressProviderInterface
+     */
+    private $defaultSenderAddressProvider;
+
     public function setUp()
     {
         $this->consignment = $this->createConsignment();
-        $this->mapper = new ConsignmentMapper(new ServiceOptionMapper());
+        $this->defaultSenderAddressProvider = $this->createDefaultSenderAddressProvider();
+
+        $this->mapper = new ConsignmentMapper(new ServiceOptionMapper(), $this->defaultSenderAddressProvider);
     }
 
     /**
@@ -80,5 +88,16 @@ class ConsignmentMapperTest extends \PHPUnit_Framework_TestCase
         $consignment = $this->getMock('Webit\Shipment\Consignment\ConsignmentInterface');
 
         return $consignment;
+    }
+
+    /**
+     * @return \PHPUnit_Framework_MockObject_MockObject|DefaultSenderAddressProviderInterface
+     */
+    private function createDefaultSenderAddressProvider()
+    {
+        $senderProvider = $this->getMock('Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface');
+
+        return $senderProvider;
+
     }
 }
