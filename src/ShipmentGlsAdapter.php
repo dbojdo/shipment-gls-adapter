@@ -10,6 +10,7 @@ namespace Webit\Shipment\GlsAdapter;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Webit\GlsAde\Api\ConsignmentPrepareApi;
+use Webit\GlsAde\Api\Exception\GlsAdeApiException;
 use Webit\GlsAde\Api\PickupApi;
 use Webit\GlsTracking\Api\TrackingApi;
 use Webit\GlsTracking\Model\Event;
@@ -143,7 +144,9 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $pickup = $this->pickupApi->getPickup($pickupId);
 
         $dispatchConfirmation = $this->pickupMapper->mapPickup(
-            $consignments->first()->getVendor(), $pickup, $pickupId
+            $consignments->first()->getVendor(),
+            $pickup,
+            $pickupId
         );
 
         return $dispatchConfirmation;
@@ -279,6 +282,8 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     /**
      * @param ConsignmentInterface $consignment
      * @return \Webit\GlsAde\Model\Consignment
+     * @throws GlsAdeApiException
+     * @throws \Exception
      */
     private function getGlsConsignment(ConsignmentInterface $consignment)
     {
@@ -287,11 +292,29 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         }
 
         if ($consignment->getStatus() == ConsignmentStatusList::STATUS_NEW) {
-            $glsConsignment = $this->prepareConsignmentApi->getConsignment($consignment->getVendorId());
+            try {
+                $glsConsignment = $this->prepareConsignmentApi->getConsignment($consignment->getVendorId());
+            } catch (GlsAdeApiException $e) {
+                if ($e->getApiErrorCode() == GlsAdeApiException::ERROR_CONSIGNMENT_NOT_FOUND) {
+                    return null;
+                }
+
+                throw $e;
+            }
+
         }
 
         if (! $glsConsignment) {
-            $glsConsignment = $this->pickupApi->getConsignment($consignment->getVendorId());
+            try {
+                $glsConsignment = $this->pickupApi->getConsignment($consignment->getVendorId());
+            } catch (GlsAdeApiException $e) {
+                if ($e->getApiErrorCode() == GlsAdeApiException::ERROR_PICKUP_NOT_FOUND) {
+                    return null;
+                }
+
+                throw $e;
+            }
+
         }
 
         return $glsConsignment;

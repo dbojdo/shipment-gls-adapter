@@ -55,6 +55,7 @@ class ConsignmentMapper
         $this->mapSenderAddress($consignment, $glsConsignment);
         $this->mapServices($consignment, $glsConsignment);
         $this->mapParcels($consignment, $glsConsignment);
+        $glsConsignment->setDate(new \DateTime());
 
         return $glsConsignment;
     }
