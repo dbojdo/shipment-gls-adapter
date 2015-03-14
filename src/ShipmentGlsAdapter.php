@@ -129,13 +129,12 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @param ArrayCollection $consignments
-     * @return DispatchConfirmationInterface
+     * @param DispatchConfirmationInterface $dispatchConfirmation
      */
-    public function dispatchConsignments(ArrayCollection $consignments)
+    public function dispatch(DispatchConfirmationInterface $dispatchConfirmation)
     {
         $ids = array();
-        $consignments->forAll(function (ConsignmentInterface $consignment) use ($ids) {
+        $dispatchConfirmation->getConsignments()->forAll(function (ConsignmentInterface $consignment) use ($ids) {
             $ids[] = $consignment->getVendorId();
         });
 
@@ -143,13 +142,11 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         $pickupId = $this->pickupApi->createPickup($ids, 'Pickup: '. $now->format('Y-m-d H:i:s'));
         $pickup = $this->pickupApi->getPickup($pickupId);
 
-        $dispatchConfirmation = $this->pickupMapper->mapPickup(
-            $consignments->first()->getVendor(),
+        $this->pickupMapper->mapPickup(
             $pickup,
-            $pickupId
+            $pickupId,
+            $dispatchConfirmation
         );
-
-        return $dispatchConfirmation;
     }
 
     /**

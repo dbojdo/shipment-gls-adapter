@@ -9,6 +9,7 @@
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
 use Webit\GlsAde\Model\Pickup;
+use Webit\Shipment\Consignment\DispatchConfirmationInterface;
 use Webit\Shipment\Consignment\DispatchConfirmationRepositoryInterface;
 use Webit\Shipment\Vendor\VendorInterface;
 
@@ -18,28 +19,18 @@ use Webit\Shipment\Vendor\VendorInterface;
  */
 class PickupMapper
 {
-    /**
-     * @var DispatchConfirmationRepositoryInterface
-     */
-    private $dispatchConfirmationRepository;
 
     /**
-     * @param DispatchConfirmationRepositoryInterface $dispatchConfirmationRepository
+     * @param Pickup $pickup
+     * @param $pickupId
+     * @param DispatchConfirmationInterface $dispatchConfirmation
+     * @return DispatchConfirmationInterface
      */
-    public function __construct(DispatchConfirmationRepositoryInterface $dispatchConfirmationRepository)
+    public function mapPickup(Pickup $pickup, $pickupId, DispatchConfirmationInterface $dispatchConfirmation)
     {
-        $this->dispatchConfirmationRepository = $dispatchConfirmationRepository;
-    }
-
-
-    public function mapPickup(VendorInterface $vendor, Pickup $pickup, $pickupId)
-    {
-        $dispatchConfirmation = $this->dispatchConfirmationRepository->getDispatchConfirmation($vendor, $pickupId);
-        $dispatchConfirmation = $dispatchConfirmation ?: $this->dispatchConfirmationRepository->createDispatchConfirmation();
         $dispatchConfirmation->setNumber($pickupId);
         $dispatchConfirmation->setDispatchedAt($pickup->getCreatedAt());
 
         return $dispatchConfirmation;
     }
 }
- 
