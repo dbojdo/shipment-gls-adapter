@@ -134,7 +134,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     public function dispatch(DispatchConfirmationInterface $dispatchConfirmation)
     {
         $ids = array();
-        $dispatchConfirmation->getConsignments()->forAll(function (ConsignmentInterface $consignment) use ($ids) {
+        $dispatchConfirmation->getConsignments()->forAll(function ($key, ConsignmentInterface $consignment) use ($ids) {
             $ids[] = $consignment->getVendorId();
         });
 
