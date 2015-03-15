@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Webit\GlsAde\Api\ConsignmentPrepareApi;
 use Webit\GlsAde\Api\Exception\GlsAdeApiException;
 use Webit\GlsAde\Api\PickupApi;
+use Webit\GlsAde\Model\Parcel;
 use Webit\GlsTracking\Api\TrackingApi;
 use Webit\GlsTracking\Model\Event;
 use Webit\GlsTracking\UrlProvider\TrackingUrlProvider;
@@ -292,7 +293,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
 
         if ($consignment->getStatus() == ConsignmentStatusList::STATUS_NEW) {
             try {
-                $glsConsignment = $this->prepareConsignmentApi->getConsignment($consignment->getVendorId());
+                return $this->prepareConsignmentApi->getConsignment($consignment->getVendorId());
             } catch (GlsAdeApiException $e) {
                 if ($e->getApiErrorCode() == GlsAdeApiException::ERROR_CONSIGNMENT_NOT_FOUND) {
                     return null;
@@ -300,7 +301,6 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
 
                 throw $e;
             }
-
         }
 
         try {
