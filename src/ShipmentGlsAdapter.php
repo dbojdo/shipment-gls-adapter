@@ -134,12 +134,14 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     public function dispatch(DispatchConfirmationInterface $dispatchConfirmation)
     {
         $ids = array();
-        $dispatchConfirmation->getConsignments()->forAll(function ($key, ConsignmentInterface $consignment) use ($ids) {
+
+        /** @var ConsignmentInterface $consignment */
+        foreach ($dispatchConfirmation->getConsignments() as $consignment) {
             $ids[] = $consignment->getVendorId();
-        });
+        }
 
         $now = new \DateTime();
-        $pickupId = $this->pickupApi->createPickup($ids, 'Pickup: '. $now->format('Y-m-d H:i:s'));
+        $pickupId = $this->pickupApi->createPickup($ids, 'Pickup: ' . $now->format('Y-m-d H:i:s'));
         $pickup = $this->pickupApi->getPickup($pickupId);
 
         $this->pickupMapper->mapPickup(
@@ -301,18 +303,16 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
 
         }
 
-        if (! $glsConsignment) {
-            try {
-                $glsConsignment = $this->pickupApi->getConsignment($consignment->getVendorId());
-            } catch (GlsAdeApiException $e) {
-                if ($e->getApiErrorCode() == GlsAdeApiException::ERROR_PICKUP_NOT_FOUND) {
-                    return null;
-                }
-
-                throw $e;
+        try {
+            $glsConsignment = $this->pickupApi->getConsignment($consignment->getVendorId());
+        } catch (GlsAdeApiException $e) {
+            if ($e->getApiErrorCode() == GlsAdeApiException::ERROR_PICKUP_NOT_FOUND) {
+                return null;
             }
 
+            throw $e;
         }
+
 
         return $glsConsignment;
     }
