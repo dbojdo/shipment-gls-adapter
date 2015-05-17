@@ -12,7 +12,6 @@ use Webit\GlsAde\Model\Consignment;
 use Webit\GlsAde\Model\Parcel;
 use Webit\GlsAde\Model\SenderAddress;
 use Webit\GlsAde\Model\ServicesBool;
-use Webit\GlsTracking\Model\DateTime;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
 use Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface;
