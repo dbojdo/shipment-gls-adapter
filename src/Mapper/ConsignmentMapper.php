@@ -143,7 +143,7 @@ class ConsignmentMapper
         $glsSenderAddress->setStreet($senderAddress->getAddress());
         $glsSenderAddress->setZipCode($senderAddress->getPostCode());
         $glsSenderAddress->setCity($senderAddress->getPost());
-        $glsSenderAddress->setCountry($senderAddress->getCountry()->getIsoCode());
+        $glsSenderAddress->setCountry($senderAddress->getCountry() ? $senderAddress->getCountry()->getIsoCode() : null);
         $glsConsignment->setSenderAddress($glsSenderAddress);
     }
 
