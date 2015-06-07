@@ -34,6 +34,10 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
 {
     const VENDOR_CODE = 'gls';
 
+    private static $supportedLanguages = array(
+        'EN', 'PL'
+    );
+
     /**
      * @var ConsignmentPrepareApi
      */
@@ -253,19 +257,20 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
      * @param null $language
      * @return string
      */
-    public function getConsignmentTrackingUrl(ConsignmentInterface $consignment, $language = null)
+    public function getConsignmentTrackingUrl(ConsignmentInterface $consignment)
     {
         $arReference = array();
         /** @var ParcelInterface $parcel */
         foreach ($consignment->getParcels() as $parcel) {
             $arReference[] = $parcel->getNumber();
         }
-        $language = $language ?: 'EN';
 
         $country = $consignment->getDeliveryAddress() ? $consignment->getDeliveryAddress()->getCountry() : null;
         if (! $country) {
             throw new \UnexpectedValueException('Cannot determinate consignment delivery country.');
         }
+
+        $language = in_array($country->getIsoCode(), self::$supportedLanguages) ? $country->getIsoCode() : 'EN';
 
         return $this->urlProvider->getStandardTrackingUrl(implode(',', $arReference), $country->getIsoCode(), $language);
     }
