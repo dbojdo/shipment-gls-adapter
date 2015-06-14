@@ -109,14 +109,6 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @return string
-     */
-    public function getVendorCode()
-    {
-        return self::VENDOR_CODE;
-    }
-
-    /**
      * Returns consignments
      * @param FilterCollection $filters
      * @param SorterCollection $sorters
