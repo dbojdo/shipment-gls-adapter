@@ -8,12 +8,10 @@
 
 namespace Webit\Shipment\GlsAdapter\Sender;
 
-
 use Webit\GlsAde\Model\SenderAddress;
 
 class DefaultSenderAddressProviderStatic implements DefaultSenderAddressProviderInterface
 {
-
     /**
      * @var SenderAddress
      */
@@ -25,7 +23,7 @@ class DefaultSenderAddressProviderStatic implements DefaultSenderAddressProvider
     }
 
     /**
-     * @return SenderAddress
+     * @inheritdoc
      */
     public function getDefaultSenderAddress()
     {

@@ -8,11 +8,11 @@
 
 namespace Webit\Shipment\GlsAdapter;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Webit\GlsAde\Api\ConsignmentPrepareApi;
 use Webit\GlsAde\Api\Exception\GlsAdeApiException;
 use Webit\GlsAde\Api\PickupApi;
-use Webit\GlsAde\Model\Parcel;
+use Webit\GlsAde\Model\ConsignmentLabelModes;
+use Webit\GlsAde\Model\PickupReceiptModes;
 use Webit\GlsTracking\Api\TrackingApi;
 use Webit\GlsTracking\Model\Event;
 use Webit\GlsTracking\UrlProvider\TrackingUrlProvider;
@@ -26,7 +26,6 @@ use Webit\Shipment\GlsAdapter\Mapper\GlsConsignmentMapper;
 use Webit\Shipment\GlsAdapter\Mapper\PickupMapper;
 use Webit\Shipment\Manager\VendorAdapterInterface;
 use Webit\Shipment\Parcel\ParcelInterface;
-use Webit\Shipment\Vendor\VendorInterface;
 use Webit\Tools\Data\FilterCollection;
 use Webit\Tools\Data\SorterCollection;
 
@@ -109,12 +108,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * Returns consignments
-     * @param FilterCollection $filters
-     * @param SorterCollection $sorters
-     * @param int $limit
-     * @param int $offset
-     * @return ArrayCollection
+     * @inheritdoc
      */
     public function getConsignments(
         FilterCollection $filters = null,
@@ -126,7 +120,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @param DispatchConfirmationInterface $dispatchConfirmation
+     * @inheritdoc
      */
     public function dispatch(DispatchConfirmationInterface $dispatchConfirmation)
     {
@@ -149,18 +143,18 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * Save consignment to vendor
-     * @param ConsignmentInterface $consignment
+     * @inheritdoc
      */
     public function saveConsignment(ConsignmentInterface $consignment)
     {
         $glsConsignment = $this->getGlsConsignment($consignment);
-        if ($glsConsignment && $glsConsignment->isDispatched()) {
-            throw new InvalidStateException('Cannot modify dispatched consignment');
-        }
+        if ($glsConsignment) {
+            if ($glsConsignment->isDispatched()) {
+                throw new InvalidStateException('Cannot modify dispatched consignment');
+            }
 
-        if ($glsConsignment && ! $glsConsignment->isDispatched()) {
             $this->prepareConsignmentApi->deleteConsignment($glsConsignment->getId());
+            $glsConsignment = null;
         }
 
         $glsConsignment = $this->consignmentMapper->mapConsignment($consignment, $glsConsignment);
@@ -170,8 +164,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * Remove consignment from vendor
-     * @param ConsignmentInterface $consignment
+     * @inheritdoc
      */
     public function removeConsignment(ConsignmentInterface $consignment)
     {
@@ -186,8 +179,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * Cancel consignment from vendor
-     * @param ConsignmentInterface $consignment
+     * @inheritdoc
      */
     public function cancelConsignment(ConsignmentInterface $consignment)
     {
@@ -200,13 +192,11 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @param ConsignmentInterface $consignment
-     * @param string $mode
-     * @return \SplFileInfo
+     * @inheritdoc
      */
     public function getConsignmentLabel(ConsignmentInterface $consignment, $mode = null)
     {
-        $mode = $mode ?: $this->defaultLabelMode;
+        $mode = $mode ?: ConsignmentLabelModes::MODE_FOUR_LABELS_ON_A4_PDF;
 
         $glsConsignment = $this->getGlsConsignment($consignment);
         if ($glsConsignment->isDispatched()) {
@@ -217,37 +207,31 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @param DispatchConfirmationInterface $dispatchConfirmation
-     * @param string $mode
-     * @return \SplFileInfo
+     * @inheritdoc
      */
     public function getConsignmentDispatchConfirmationLabel(
         DispatchConfirmationInterface $dispatchConfirmation,
         $mode = null
     ) {
-        $mode = $mode ?: $this->defaultLabelMode;
+        $mode = $mode ?: ConsignmentLabelModes::MODE_FOUR_LABELS_ON_A4_PDF;
 
         return $this->pickupApi->getPickupLabels($dispatchConfirmation->getNumber(), $mode);
     }
 
     /**
-     * @param DispatchConfirmationInterface $dispatchConfirmation
-     * @param string $mode
-     * @return \SplFileInfo
+     * @inheritdoc
      */
     public function getConsignmentDispatchConfirmationReceipt(
         DispatchConfirmationInterface $dispatchConfirmation,
         $mode = null
     ) {
-        $mode = $mode ?: $this->defaultPickupReceiptMode;
+        $mode = $mode ?: PickupReceiptModes::MODE_CONDENSED;
 
         $this->pickupApi->getPickupReceipt($dispatchConfirmation->getNumber(), $mode);
     }
 
     /**
-     * @param ConsignmentInterface $consignment
-     * @param null $language
-     * @return string
+     * @inheritdoc
      */
     public function getConsignmentTrackingUrl(ConsignmentInterface $consignment)
     {
@@ -268,8 +252,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     *
-     * @return VendorInterface
+     * @inheritdoc
      */
     public function createVendor()
     {
@@ -310,7 +293,6 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
             throw $e;
         }
 
-
         return $glsConsignment;
     }
 
@@ -344,7 +326,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
         }
 
         $parcel->setVendorStatus($event->getCode());
-        $status = $this->glsConsignmetMapper->mapParcelStatus($event->getCode());
+        $status = $this->glsConsignmentMapper->mapParcelStatus($event->getCode());
         $parcel->setStatus($status);
     }
 }

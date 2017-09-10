@@ -72,7 +72,7 @@ class PickupMapper
     private function mapConsignment(DispatchConfirmationInterface $dispatchConfirmation, Consignment $glsConsignment)
     {
         $consignment = $this->findConsignment($dispatchConfirmation, $glsConsignment);
-        if (! $consignment) {
+        if (!$consignment) {
             throw new MappingException(
                 sprintf(
                     'Can not find Consignment for GlsConsignment (%s) in given DispatchConfirmation (%s)',

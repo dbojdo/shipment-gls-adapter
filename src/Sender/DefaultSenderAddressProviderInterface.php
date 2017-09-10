@@ -8,7 +8,6 @@
 
 namespace Webit\Shipment\GlsAdapter\Sender;
 
-
 use Webit\GlsAde\Model\SenderAddress;
 
 interface DefaultSenderAddressProviderInterface

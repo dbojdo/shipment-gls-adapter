@@ -77,7 +77,7 @@ class ConsignmentMapper
          */
         foreach ($consignment->getVendorOptions() as $code => $optionValue) {
             $service = $this->serviceOptionMapper->mapOptionCode($code);
-            if (! $service) {
+            if (!$service) {
                 continue;
             }
 
@@ -131,7 +131,7 @@ class ConsignmentMapper
     private function mapSenderAddress(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
         $senderAddress = $consignment->getSenderAddress();
-        if (! $senderAddress) {
+        if (!$senderAddress) {
             $senderAddress = $this->defaultSenderProvider->getDefaultSenderAddress();
             $glsConsignment->setSenderAddress($senderAddress);
 
@@ -153,31 +153,26 @@ class ConsignmentMapper
      */
     private function mapParcels(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
-        $toRemoveGlsParcels = array();
         foreach ($glsConsignment->getParcels() as $glsParcel) {
-            $toRemoveGlsParcels[$glsParcel->getNumber()] = $glsParcel;
+            if (!$glsParcel->getNumber()) {
+                $glsConsignment->removeParcel($glsParcel);
+            }
         }
 
         /** @var ParcelInterface $parcel */
         foreach ($consignment->getParcels() as $parcel) {
             $glsParcel = $glsConsignment->getParcels()->filter(function (Parcel $glsParcel) use ($parcel) {
-                return $glsParcel->getNumber() == $parcel->getNumber();
+                return $parcel->getNumber() && $glsParcel->getNumber() == $parcel->getNumber();
             });
 
             $glsParcel = $glsParcel->first();
             $glsParcel = $glsParcel ?: new Parcel();
 
             $this->mapParcel($parcel, $glsParcel);
+
             $glsParcel->setServicesBool($glsConsignment->getServicesBool());
 
             $glsConsignment->addParcel($glsParcel);
-
-            unset($toRemoveGlsParcels[$glsParcel->getNumber()]);
-        }
-
-        /** @var Parcel $glsParcel */
-        foreach ($toRemoveGlsParcels as $glsParcel) {
-            $glsConsignment->removeParcel($glsParcel);
         }
     }
 

@@ -10,20 +10,24 @@ namespace Webit\Shipment\GlsAdapter\Mapper;
 
 use Webit\GlsAde\Model\Consignment;
 use Webit\GlsAde\Model\Parcel;
+use Webit\Shipment\Consignment\Consignment as ShipmentConsignment;
+use Webit\Shipment\GlsAdapter\Exception\MappingException;
 
 class ParcelMapper
 {
     /**
      * @param Consignment $glsConsignment
-     * @param \Webit\Shipment\Consignment\Consignment $consignment
+     * @param ShipmentConsignment $consignment
      * @throws MappingException
      */
-    public function updateParcelsNumbers(Consignment $glsConsignment, \Webit\Shipment\Consignment\Consignment $consignment)
-    {
+    public function updateParcelsNumbers(
+        Consignment $glsConsignment,
+        ShipmentConsignment $consignment
+    ) {
         /** @var Parcel $glsParcel */
         foreach ($glsConsignment->getParcels() as $glsParcel) {
             $parcel = $consignment->findParcel($glsParcel->getReference());
-            if (! $parcel) {
+            if (!$parcel) {
                 throw new MappingException(
                     sprintf(
                         'Can not find Parcel for GlsParcel (reference: "%s", number: "%s") in given Consignment (ID: "%s")',

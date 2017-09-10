@@ -8,7 +8,6 @@
 
 namespace Webit\Shipment\GlsAdapter\Mapper;
 
-
 class ServiceOptionMapper
 {
     /**
