@@ -19,7 +19,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "webit/shipment": "~1.0",
+        "webit/shipment": "^2.0.0",
         "webit/gls-ade": "dev-master",
         "webit/gls-tracking": "dev-master"
     },

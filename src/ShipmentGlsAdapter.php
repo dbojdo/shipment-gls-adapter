@@ -128,6 +128,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
 
         /** @var ConsignmentInterface $consignment */
         foreach ($dispatchConfirmation->getConsignments() as $consignment) {
+            $this->saveConsignment($consignment);
             $ids[] = $consignment->getVendorId();
         }
 
@@ -297,9 +298,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * Update consignment data with vendor's one
-     * @param ConsignmentInterface $consignment
-     * @return mixed
+     * @inheritdoc
      */
     public function synchronizeConsignment(ConsignmentInterface $consignment)
     {
@@ -308,8 +307,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     }
 
     /**
-     * @param ParcelInterface $parcel
-     * @return string
+     * @inheritdoc
      */
     public function synchronizeParcelStatus(ParcelInterface $parcel)
     {

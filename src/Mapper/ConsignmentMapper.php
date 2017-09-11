@@ -56,7 +56,9 @@ class ConsignmentMapper
         $this->mapServices($consignment, $glsConsignment);
         $this->mapParcels($consignment, $glsConsignment);
 
-        $glsConsignment->setDate($consignment->getAssigningDate());
+        if ($dispatchConfirmation = $consignment->getDispatchConfirmation()) {
+            $glsConsignment->setDate($dispatchConfirmation->getPickUpAt());
+        }
 
         return $glsConsignment;
     }
