@@ -12,9 +12,10 @@ use Webit\GlsAde\Model\Consignment;
 use Webit\GlsAde\Model\Parcel;
 use Webit\GlsAde\Model\SenderAddress;
 use Webit\GlsAde\Model\ServicesBool;
+use Webit\Shipment\Address\DefaultSenderAddressProviderInterface;
+use Webit\Shipment\Address\SenderAddressInterface;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\GlsAdapter\Exception\UnsupportedOperationException;
-use Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface;
 use Webit\Shipment\Parcel\ParcelInterface;
 use Webit\Shipment\Vendor\VendorOptionValueInterface;
 
@@ -26,7 +27,7 @@ class ConsignmentMapper
     private $serviceOptionMapper;
 
     /**
-     * @var DefaultSenderAddressProviderInterface
+     * @var \Webit\Shipment\Address\DefaultSenderAddressProviderInterface
      */
     private $defaultSenderProvider;
 
@@ -111,19 +112,23 @@ class ConsignmentMapper
     {
         $deliveryAddress = $consignment->getDeliveryAddress();
 
-        $glsConsignment->setName1($deliveryAddress ? $deliveryAddress->getName() : null);
-        $glsConsignment->setStreet($deliveryAddress ? $deliveryAddress->getAddress() : null);
-        $glsConsignment->setZipCode($deliveryAddress ? $deliveryAddress->getPostCode() : null);
-        $glsConsignment->setCity($deliveryAddress ? $deliveryAddress->getPost() : null);
+        if (! $deliveryAddress) {
+            return;
+        }
+
+        $glsConsignment->setName1($deliveryAddress->getName());
+        $glsConsignment->setStreet($deliveryAddress->getAddress());
+        $glsConsignment->setZipCode($deliveryAddress->getPostCode());
+        $glsConsignment->setCity($deliveryAddress->getPost());
         $glsConsignment->setCountry(
-            $deliveryAddress && $deliveryAddress->getCountry() ? $deliveryAddress->getCountry()->getIsoCode() : null
+            $deliveryAddress->getCountry() ? $deliveryAddress->getCountry()->getIsoCode() : null
         );
 
         $contact = sprintf('%s / %s', $deliveryAddress->getContactEmail(), $deliveryAddress->getContactPerson());
         $contact = trim($contact, ' /');
         $glsConsignment->setContact($contact);
 
-        $glsConsignment->setPhone($deliveryAddress ? $deliveryAddress->getContactPhoneNo() : null);
+        $glsConsignment->setPhone($deliveryAddress->getContactPhoneNo());
     }
 
     /**
@@ -132,20 +137,9 @@ class ConsignmentMapper
      */
     private function mapSenderAddress(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
-        $senderAddress = $consignment->getSenderAddress();
-        if (!$senderAddress) {
-            $senderAddress = $this->defaultSenderProvider->getDefaultSenderAddress();
-            $glsConsignment->setSenderAddress($senderAddress);
+        $senderAddress = $consignment->getSenderAddress() ?: $this->defaultSenderProvider->getSender();
+        $glsSenderAddress = $this->senderAddress($senderAddress);
 
-            return;
-        }
-
-        $glsSenderAddress = $glsConsignment->getSenderAddress() ?: new SenderAddress();
-        $glsSenderAddress->setName1($senderAddress->getName());
-        $glsSenderAddress->setStreet($senderAddress->getAddress());
-        $glsSenderAddress->setZipCode($senderAddress->getPostCode());
-        $glsSenderAddress->setCity($senderAddress->getPost());
-        $glsSenderAddress->setCountry($senderAddress->getCountry() ? $senderAddress->getCountry()->getIsoCode() : null);
         $glsConsignment->setSenderAddress($glsSenderAddress);
     }
 
@@ -213,5 +207,25 @@ class ConsignmentMapper
     private function mapDawData(ConsignmentInterface $consignment, Consignment $glsConsignment)
     {
         throw new UnsupportedOperationException('Service DAW is not supported by this adapter yet.');
+    }
+
+    /**
+     * @param SenderAddressInterface $senderAddress
+     * @return SenderAddress
+     */
+    private function senderAddress(SenderAddressInterface $senderAddress = null)
+    {
+        $glsSender = new SenderAddress();
+        if (! $senderAddress) {
+            return $glsSender;
+        }
+
+        $glsSender->setName1($senderAddress->getName());
+        $glsSender->setZipCode($senderAddress->getPostCode());
+        $glsSender->setCity($senderAddress->getPost());
+        $glsSender->setStreet($senderAddress->getAddress());
+        $glsSender->setCountry($senderAddress->getCountry() ? $senderAddress->getCountry()->getIsoCode() : 'PL');
+
+        return $glsSender;
     }
 }

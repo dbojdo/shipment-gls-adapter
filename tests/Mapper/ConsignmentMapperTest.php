@@ -10,10 +10,10 @@ namespace Webit\Shipment\GlsAdapter\Tests\Mapper;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Webit\GlsAde\Model\Consignment;
+use Webit\Shipment\Address\DefaultSenderAddressProviderInterface;
 use Webit\Shipment\Consignment\ConsignmentInterface;
 use Webit\Shipment\GlsAdapter\Mapper\ConsignmentMapper;
 use Webit\Shipment\GlsAdapter\Mapper\ServiceOptionMapper;
-use Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface;
 use Webit\Shipment\Vendor\VendorOptionValueCollection;
 
 /**
@@ -95,7 +95,7 @@ class ConsignmentMapperTest extends \PHPUnit_Framework_TestCase
      */
     private function createDefaultSenderAddressProvider()
     {
-        $senderProvider = $this->getMock('Webit\Shipment\GlsAdapter\Sender\DefaultSenderAddressProviderInterface');
+        $senderProvider = $this->getMock('Webit\Shipment\Address\DefaultSenderAddressProviderInterface');
 
         return $senderProvider;
 
