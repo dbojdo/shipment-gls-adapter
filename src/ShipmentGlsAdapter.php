@@ -228,7 +228,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
     ) {
         $mode = $mode ?: PickupReceiptModes::MODE_CONDENSED;
 
-        $this->pickupApi->getPickupReceipt($dispatchConfirmation->getNumber(), $mode);
+        return $this->pickupApi->getPickupReceipt($dispatchConfirmation->getNumber(), $mode);
     }
 
     /**

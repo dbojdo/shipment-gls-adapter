@@ -20,8 +20,8 @@
     "require": {
         "php": ">=5.3.3",
         "webit/shipment": "^2.0.0",
-        "webit/gls-ade": "dev-master",
-        "webit/gls-tracking": "dev-master"
+        "webit/gls-ade": "^2.0.0",
+        "webit/gls-tracking": "^2.0.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~4.2"
@@ -36,7 +36,6 @@
             "Webit\\Shipment\\GlsAdapter\\Tests\\": "tests/"
         }
     },
-    "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
             "dev-1.x": "1.x-dev",
