@@ -11,6 +11,7 @@
         "dispatch",
         "gls"
     ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Daniel Bojdo",
