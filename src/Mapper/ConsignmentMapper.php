@@ -78,16 +78,14 @@ class ConsignmentMapper
          * @var string $code
          * @var VendorOptionValueInterface $optionValue
          */
-        foreach ($consignment->getVendorOptions() as $code => $optionValue) {
-            $service = $this->serviceOptionMapper->mapOptionCode($code);
+        foreach ($consignment->getVendorOptions() as $optionValue) {
+            $service = $this->serviceOptionMapper->mapOptionCode($optionValue->getOptionCode());
             if (!$service) {
                 continue;
             }
 
             $setter = sprintf('set%s', ucfirst($service));
             call_user_func(array($servicesBool, $setter), $optionValue->getValue());
-
-            $optionValue->getValue();
         }
 
         if ($servicesBool->getPr() || $servicesBool->getPs() || $servicesBool->getExc() || $servicesBool->getSrs()) {
