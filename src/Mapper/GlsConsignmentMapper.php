@@ -32,7 +32,7 @@ class GlsConsignmentMapper
      */
     public function mapParcelStatus($statusCode)
     {
-        if ((float)$statusCode < 0) {
+        if ((float)$statusCode == 0.1) {
             return ConsignmentStatusList::STATUS_DISPATCHED;
         }
 

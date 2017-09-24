@@ -311,7 +311,7 @@ class ShipmentGlsAdapter implements VendorAdapterInterface
      */
     public function synchronizeParcelStatus(ParcelInterface $parcel)
     {
-        $details = $this->trackingApi->getParcelDetails($parcel->getReference());
+        $details = $this->trackingApi->getParcelDetails($parcel->getNumber());
 
         if (! $details) {
             return;
