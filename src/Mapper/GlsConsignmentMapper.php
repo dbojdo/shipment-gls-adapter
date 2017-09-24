@@ -32,72 +32,14 @@ class GlsConsignmentMapper
      */
     public function mapParcelStatus($statusCode)
     {
-        if (empty($statusCode)) {
+        if ((float)$statusCode < 0) {
             return ConsignmentStatusList::STATUS_DISPATCHED;
         }
 
-        switch ($statusCode) {
-            case '2011':
-            case '2012':
-                return ConsignmentStatusList::STATUS_DELIVERED;
-                break;
-            case '3010':
-                return ConsignmentStatusList::STATUS_CANCELED;
-                break;
-        }
-
-        if ($this->isConcerned($statusCode)) {
-            return ConsignmentStatusList::STATUS_CONCERNED;
+        if ((float)$statusCode == 3.0) {
+            return ConsignmentStatusList::STATUS_DELIVERED;
         }
 
         return ConsignmentStatusList::STATUS_COLLECTED;
-    }
-
-    /**
-     * @param string $statusCode
-     * @return bool
-     */
-    private function isConcerned($statusCode)
-    {
-        return in_array(
-            $statusCode,
-            array(
-                '1024',
-                '2106',
-                '2110',
-                '2112',
-                '2113',
-                '2114',
-                '2115',
-                '2203',
-                '2204',
-                '2205',
-                '2303',
-                '2304',
-                '2404',
-                '2900',
-                '2901',
-                '2902',
-                '2911',
-                '2912',
-                '2913',
-                '2914',
-                '2915',
-                '2918',
-                '2933',
-                '2934',
-                '2939',
-                '2950',
-                '2951',
-                '2952',
-                '2953',
-                '2954',
-                '2955',
-                '2956',
-                '2957',
-                '2958',
-                '3010'
-            )
-        );
     }
 }
