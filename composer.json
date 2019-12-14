@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "webit/shipment": "^2.0.0",
+        "webit/shipment": "^2.0.0|^3.0.0",
         "webit/gls-ade": "^2.0.0",
         "webit/gls-tracking": "^2.0.0"
     },
